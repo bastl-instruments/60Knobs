@@ -175,7 +175,7 @@ void renderFunctionButton() {
       //do we need to change the channel ?
       for (uint8_t channelKnob = 0; channelKnob < 16; channelKnob++) {
         //if one the knobs associated to the MIDI channel selection has moved enough
-        if (abs(knobBuffer[0][channelKnob] - knobBuffer[1][channelKnob]) > THRESHOLD) {
+        if (abs(knobBuffer[0][channelKnob] - knobBuffer[1][channelKnob]) > KnobSelectThreshold) {
           activePreset.channel = channelKnob + 1;
           //give a visual feedback to prove that the channel has changed
           digitalWrite(LED_PIN, LOW);
@@ -187,7 +187,7 @@ void renderFunctionButton() {
       //do we need to change preset ?
       for (uint8_t presetKnob = 50; presetKnob < 55; presetKnob++) {
         //if one of the knobs associated with the preset selection has moved enough
-        if (abs(knobBuffer[0][presetKnob] - knobBuffer[1][presetKnob]) > THRESHOLD) {
+        if (abs(knobBuffer[0][presetKnob] - knobBuffer[1][presetKnob]) > KnobSelectThreshold) {
           currentPresetNumber = presetKnob - 50;
           loadPreset(currentPresetNumber);
           //give a visual feedback to prove that the preset has changed

@@ -38,17 +38,12 @@ enum Command_t {
   SETKNOBASENRPN = 18
 };
 
-/*---   FUNCTION BUTTON CONSTANTS   ---*/
-#define THRESHOLD 2
-#define CLICKSPEEDMIN 100
-#define CLICKSPEEDMAX 350
-
-/*---   PRESET MANAGEMENT CONSTANTS   ---*/
-//#define PRESET_LENGTH 191
-
+/*---   Tunable interface behavior   ---*/
+const uint8_t KnobSelectThreshold = 2;
+//#define CLICKSPEEDMIN 100
+//#define CLICKSPEEDMAX 350
 
 /*---   MISC. CONSTANTS   ---*/
 const uint8_t NUMBEROFKNOBS = 60;
 
 #endif
-
