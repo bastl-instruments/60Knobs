@@ -45,7 +45,6 @@ enum Command_t {
 
 /*---   PRESET MANAGEMENT CONSTANTS   ---*/
 #define PRESET_LENGTH 191
-#define INVERTBITS_LENGTH 8
 
 
 /*---   MISC. CONSTANTS   ---*/

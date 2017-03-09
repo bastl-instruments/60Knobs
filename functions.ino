@@ -188,12 +188,12 @@ void loadPreset(uint8_t presetNumber) {
 
   //and finally load the inversion bits
   invertBits = 0;
-  for (int i = 0; i < INVERTBITS_LENGTH; i++) {
+  for (int i = 0; i < sizeof(invertBits); i++) {
     uint64_t eepromValue = (uint64_t)(EEPROM.read(baseAddress + sizeof(knobInfo) + 1 + i));
     invertBits |= eepromValue << (i * 8);
   }
 
-  dropNRPNMSBvalue = EEPROM.read(baseAddress + sizeof(knobInfo) + INVERTBITS_LENGTH + 1);
+  dropNRPNMSBvalue = EEPROM.read(baseAddress + sizeof(knobInfo) + sizeof(invertBits) + 1);
 
   //update the last used preset
   EEPROM.update(0, presetNumber);
@@ -559,12 +559,12 @@ void savePreset(uint8_t presetNbr)
  
 
   //finally write the inversion bits to the EEPROM
-  for (int i = 0; i < INVERTBITS_LENGTH; i++) {
+  for (int i = 0; i < sizeof(invertBits); i++) {
     uint8_t oneByteValue = (invertBits >> (i * 8));
     EEPROM.update(baseAddress + sizeof(knobInfo) + 1 + i, oneByteValue);
   }
 
-   EEPROM.update(baseAddress + sizeof(knobInfo) + INVERTBITS_LENGTH + 1, dropNRPNMSBvalue);
+   EEPROM.update(baseAddress + sizeof(knobInfo) + sizeof(invertBits) + 1, dropNRPNMSBvalue);
 
   //Visual feedback
   //we wait a bit with the LED oon
