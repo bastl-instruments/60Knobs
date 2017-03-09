@@ -7,22 +7,14 @@
 
 //Averages the knob position and decides if a message should be outputed, if yes, decodes the current preset and sends the acording message
 void interpretKnob(uint8_t index, bool force, bool inhibit) {
-  uint8_t knobSpec[3];  //holds the preset preferences for that knob
+
 
   //we average the values in the buffers
-  uint16_t toSend = 0;
-  for (int i = 0; i < 4; i++) {
-    toSend += knobBuffer[i][index];
-  }
-  toSend /= 4;
-
-  //we flip the value of the knob if it is in "inverted" mode
-  if (isInverted(index) != 0) {
-    toSend = 127 - toSend;
-  }
-
+  
   //if the value to send is relevant, we send it to the MIDI OUT port
   if (((toSend != emittedValue[0][index]) && (toSend != emittedValue[1][index]) && (toSend != emittedValue[2][index])) || (force == true)) {  //if a message should be sent
+  
+    uint8_t knobSpec[3];  //holds the preset preferences for that knob
 
     //look at the knobInfo array to know how we should format the data
     knobSpec[0] = knobInfo[index].CC;  //the CC byte

@@ -31,3 +31,22 @@ void updateKnob(uint8_t index) {
   }
   knobBuffer[0][index] = analogRead(A0) >> 3;
 }
+
+/*
+*  Returns average of previous knob reads
+*/
+uint16_t getKnobValue(uint8_t knobIndex)
+{  
+  uint16_t average = 0;
+  for (int i = 0; i < 4; i++) {
+    average += knobBuffer[i][index];
+  }
+  average /= 4;
+
+  //we flip the value of the knob if it is in "inverted" mode
+  if (isInverted(index) != 0) {
+    average = 127 - average;
+  }
+
+  return average;
+}

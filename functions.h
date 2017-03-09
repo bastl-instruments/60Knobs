@@ -12,6 +12,7 @@
 
 void selectKnob(uint8_t index); //Sets up the MUXs in order to select the specified knob
 void updateKnob(uint8_t index); //Updates the buffers and samples the analog pin
+uint16_t getKnobValue(uint8_t knobIndex);
 void interpretKnob(uint8_t index, bool force, bool inhibit);  //Averages the knob position and decides if a message should be outputed, if yes, decodes the current preset and sends the acording message
 void sendUnipolarNRPN(uint16_t NRPNNumber, uint8_t value, uint8_t channel);
 void sendBipolarNRPN(uint16_t NRPNNumber, int8_t value, uint8_t channel);
