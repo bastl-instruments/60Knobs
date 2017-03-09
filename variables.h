@@ -92,7 +92,14 @@ uint8_t knobBuffer[4][60];
 uint8_t emittedValue[3][60];
 
 uint8_t channel;
-uint8_t knobInfo[180];
+
+struct Knob_t {
+  uint8_t CC;
+  uint8_t NRPN;
+  uint8_t SYSEX;
+};
+
+Knob_t knobInfo[NUMBEROFKNOBS];
 
 uint8_t currentPreset;
 

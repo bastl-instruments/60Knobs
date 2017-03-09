@@ -46,10 +46,10 @@ enum Command_t {
 /*---   PRESET MANAGEMENT CONSTANTS   ---*/
 #define PRESET_LENGTH 191
 #define INVERTBITS_LENGTH 8
-#define KNOB_DESCRIPTOR_LENGTH 180
+
 
 /*---   MISC. CONSTANTS   ---*/
-#define NUMBEROFKNOBS 60
+const uint8_t NUMBEROFKNOBS = 60;
 
 #endif
 

@@ -57,9 +57,9 @@ void interpretKnob(uint8_t index, bool force, bool inhibit) {
   if (((toSend != emittedValue[0][index]) && (toSend != emittedValue[1][index]) && (toSend != emittedValue[2][index])) || (force == true)) {  //if a message should be sent
 
     //look at the knobInfo array to know how we should format the data
-    knobSpec[0] = knobInfo[index * 3];  //the CC byte
-    knobSpec[1] = knobInfo[index * 3 + 1]; //the NRPN byte
-    knobSpec[2] = knobInfo[index * 3 + 2]; //the sysex byte
+    knobSpec[0] = knobInfo[index].CC;  //the CC byte
+    knobSpec[1] = knobInfo[index].NRPN; //the NRPN byte
+    knobSpec[2] = knobInfo[index].SYSEX; //the sysex byte
 
     //First we detect which kind of knob it is and we emit the data accordingly
     if (bitRead(knobSpec[2], 7) == 1) {
@@ -182,18 +182,18 @@ void loadPreset(uint8_t presetNumber) {
   channel = EEPROM.read(baseAddress);
 
   //We can now copy the knobsDescriptors in RAM
-  for (uint8_t i = 0; i < KNOB_DESCRIPTOR_LENGTH; i++) {
-    knobInfo[i] = EEPROM.read(baseAddress + 1 + i);
+  for (uint8_t i = 0; i < sizeof(knobInfo); i++) {
+    ((uint8_t*)knobInfo)[i] = EEPROM.read(baseAddress + 1 + i);
   }
 
   //and finally load the inversion bits
   invertBits = 0;
   for (int i = 0; i < INVERTBITS_LENGTH; i++) {
-    uint64_t eepromValue = (uint64_t)(EEPROM.read(baseAddress + KNOB_DESCRIPTOR_LENGTH + 1 + i));
+    uint64_t eepromValue = (uint64_t)(EEPROM.read(baseAddress + sizeof(knobInfo) + 1 + i));
     invertBits |= eepromValue << (i * 8);
   }
 
-  dropNRPNMSBvalue = EEPROM.read(baseAddress + KNOB_DESCRIPTOR_LENGTH + INVERTBITS_LENGTH + 1);
+  dropNRPNMSBvalue = EEPROM.read(baseAddress + sizeof(knobInfo) + INVERTBITS_LENGTH + 1);
 
   //update the last used preset
   EEPROM.update(0, presetNumber);
@@ -212,11 +212,11 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
         {
           //PARAM 1 : which knob do we affect ?
           //PARAM 2 : the CC number
-          if (data[PARAM1] < 60) {
-            uint8_t knobPointer = data[PARAM1] * 3;
-            knobInfo[knobPointer] = data[PARAM2];
-            knobInfo[knobPointer + 1] = 0;
-            knobInfo[knobPointer + 2] = 128;
+          if (data[PARAM1] < NUMBEROFKNOBS) {
+            uint8_t knobIndex = data[PARAM1];
+            knobInfo[knobIndex].CC = data[PARAM2];
+            knobInfo[knobIndex].NRPN = 0;
+            knobInfo[knobIndex].SYSEX = 128;
 
             //knob in normal mode by default
             clearBits64(invertBits, data[PARAM1]);
@@ -230,11 +230,11 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
           //PARAM 1 : which knob do we affect ?
           //PARAM 2 : CC number
           //PARAM 3 : the MIDI channel of that knob
-          if (data[PARAM1] < 60) {
-            uint8_t knobPointer = data[PARAM1] * 3;
-            knobInfo[knobPointer] = data[PARAM2];
-            knobInfo[knobPointer + 1] = 0;
-            knobInfo[knobPointer + 2] = data[PARAM3] | 0x80;
+          if (data[PARAM1] < NUMBEROFKNOBS) {
+            uint8_t knobIndex = data[PARAM1];
+            knobInfo[knobIndex].CC = data[PARAM2];
+            knobInfo[knobIndex].NRPN = 0;
+            knobInfo[knobIndex].SYSEX = data[PARAM3] | 0x80;
 
             //knob in normal mode by default
             clearBits64(invertBits, data[PARAM1]);
@@ -246,11 +246,11 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
       case DISABLEKNOB :  //Sets a knob as an inactive CC knob
         {
           //PARAM 1 : which knob do we affect ?
-          if (data[PARAM1] < 60) {
-            uint8_t knobPointer = data[PARAM1] * 3;
-            knobInfo[knobPointer] = 0;  //bullshit CC
-            knobInfo[knobPointer + 1] = 0;
-            knobInfo[knobPointer + 2] = 17 | 0x80; //out of range -> knob disabled
+          if (data[PARAM1] < NUMBEROFKNOBS) {
+            uint8_t knobIndex = data[PARAM1];
+            knobInfo[knobIndex].CC  = 0;  //bullshit CC
+            knobInfo[knobIndex].NRPN = 0;
+            knobInfo[knobIndex].SYSEX = 17 | 0x80; //out of range -> knob disabled
           }
 
           break;
@@ -262,13 +262,13 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
           //PARAM 2 : NRPN number LSB
           //PARAM 3 : NRPN number MSB
           //PARAM 4 : NRPN range (-range to +range), range max : 63
-          if (data[PARAM1] < 60) {
+          if (data[PARAM1] < NUMBEROFKNOBS) {
             uint8_t range = data[PARAM4];
-            uint8_t knobPointer = data[PARAM1] * 3;
-            knobInfo[knobPointer] = data[PARAM2];
-            knobInfo[knobPointer + 1] = data[PARAM3] | 0x80;
+            uint8_t knobIndex = data[PARAM1];
+            knobInfo[knobIndex].CC = data[PARAM2];
+            knobInfo[knobIndex].NRPN = data[PARAM3] | 0x80;
             if (range > 63) range = 63;
-            knobInfo[knobPointer + 2] = 128 + range;
+            knobInfo[knobIndex].SYSEX = 128 + range;
 
             //knob in normal mode by default
             clearBits64(invertBits, data[PARAM1]);
@@ -283,12 +283,11 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
           //PARAM 2 : NRPN number LSB
           //PARAM 3 : NRPN number MSB
           //PARAM 4 : NRPN range (0 to +range), max range : 127
-          if (data[PARAM1] < 60) {
-            uint8_t range;
-            uint8_t knobPointer = data[PARAM1] * 3;
-            knobInfo[knobPointer] = data[PARAM2] | 0x80;
-            knobInfo[knobPointer + 1] = data[PARAM3] | 0x80;
-            knobInfo[knobPointer + 2] = 128 + data[PARAM4];
+          if (data[PARAM1] < NUMBEROFKNOBS) {
+            uint8_t knobIndex = data[PARAM1];
+            knobInfo[knobIndex].CC = data[PARAM2] | 0x80;
+            knobInfo[knobIndex].NRPN = data[PARAM3] | 0x80;
+            knobInfo[knobIndex].SYSEX = 128 + data[PARAM4];
 
             //knob in normal mode by default
             clearBits64(invertBits, data[PARAM1]);
@@ -305,11 +304,11 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
           //PARAM 2 : NRPN number LSB
           //PARAM 3 : NRPN number MSB
           //PARAM 4 : NRPN range (1 : +164, 1 : +200, 1 : +1600, 1 : +2000)
-          if (data[PARAM1] < 60) {
+          if (data[PARAM1] < NUMBEROFKNOBS) {
             uint8_t range = data[PARAM4];
-            uint8_t knobPointer = data[PARAM1] * 3;
-            knobInfo[knobPointer] = data[PARAM2];
-            knobInfo[knobPointer + 1] = data[PARAM3] | 0x80;
+            uint8_t knobIndex = data[PARAM1];
+            knobInfo[knobIndex].CC = data[PARAM2];
+            knobInfo[knobIndex].NRPN = data[PARAM3] | 0x80;
             switch (range) {
               case 1 :
                 range = 63 + 1; //+164
@@ -327,7 +326,7 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
                 range = 63 + 10; //wrong number -> no action
                 break;
             }
-            knobInfo[knobPointer + 2] = 128 + range;
+            knobInfo[knobIndex].SYSEX = 128 + range;
 
             //knob in normal mode by default
             clearBits64(invertBits, data[PARAM1]);
@@ -342,11 +341,11 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
           //PARAM 2 : DX7 parameter number most significant bit
           //PARAM 3 : DX7 parameter number last 7 bits
           //PARAM 4 : maximum value that can be reached by that parameter
-          if (data[PARAM1] < 60) {
-            uint8_t knobPointer = data[PARAM1] * 3;
-            knobInfo[knobPointer] = 0;
-            knobInfo[knobPointer + 1] = (data[PARAM2] << 7) | data[PARAM3];
-            knobInfo[knobPointer + 2] = data[PARAM4];
+          if (data[PARAM1] < NUMBEROFKNOBS) {
+            uint8_t knobIndex = data[PARAM1];
+            knobInfo[knobIndex].CC = 0;
+            knobInfo[knobIndex].NRPN = (data[PARAM2] << 7) | data[PARAM3];
+            knobInfo[knobIndex].SYSEX = data[PARAM4];
 
             //knob in normal mode by default
             clearBits64(invertBits, data[PARAM1]);
@@ -359,7 +358,7 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
         {
           //PARAM1 : which knob do we affect ?
           //PARAM2 : 0-> knob in normal mode; 1-> knob in invert mode
-          if (data[PARAM1] < 60) {
+          if (data[PARAM1] < NUMBEROFKNOBS) {
             if (data[PARAM2] == 0) {
               clearBits64(invertBits, data[PARAM1]);
             }
@@ -405,7 +404,7 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
       case SYNCKNOBS :  //Forces the emission of the messages associated to every knob
         {
           //NO PARAM
-          for (uint8_t i = 0; i < 60; i++) {
+          for (uint8_t i = 0; i < NUMBEROFKNOBS; i++) {
             interpretKnob(i, true, false);
           }
 
@@ -459,7 +458,7 @@ void renderFunctionButton() {
       //show the user that the double click worked
       digitalWrite(LED_PIN, LOW);
       //sync the knobs
-      for (uint8_t i = 0; i < 60; i++) {
+      for (uint8_t i = 0; i < NUMBEROFKNOBS; i++) {
         interpretKnob(i, true, false);
       }
       delay(500); //just for the hell of it, more visual perhaps
@@ -474,7 +473,7 @@ void renderFunctionButton() {
     while (!digitalRead(BUTTON_PIN)) { //while the button is held down
 
       //we detect the movement on the knobs we care for (0 to 15 and 50 to 54)
-      for (int currentKnob = 0; currentKnob < 60; currentKnob++) {
+      for (int currentKnob = 0; currentKnob < NUMBEROFKNOBS; currentKnob++) {
         MIDI.read();
         selectKnob(currentKnob);  //Sets up the MUXs to direct the right knob to the analog input
         MIDI.read();
@@ -553,8 +552,8 @@ void savePreset(uint8_t presetNbr)
   EEPROM.update(baseAddress, channel); //write the channel in the EEPROM
 
   //write the knobs descriptors in the EEPROM
-  for (int i = 0; i < KNOB_DESCRIPTOR_LENGTH; i++) {
-    EEPROM.update(baseAddress + 1 + i, knobInfo[i]);
+  for (int i = 0; i < sizeof(knobInfo); i++) {
+    EEPROM.update(baseAddress + 1 + i, ((uint8_t*)knobInfo)[i]);
   }
 
  
@@ -562,10 +561,10 @@ void savePreset(uint8_t presetNbr)
   //finally write the inversion bits to the EEPROM
   for (int i = 0; i < INVERTBITS_LENGTH; i++) {
     uint8_t oneByteValue = (invertBits >> (i * 8));
-    EEPROM.update(baseAddress + KNOB_DESCRIPTOR_LENGTH + 1 + i, oneByteValue);
+    EEPROM.update(baseAddress + sizeof(knobInfo) + 1 + i, oneByteValue);
   }
 
-   EEPROM.update(baseAddress + KNOB_DESCRIPTOR_LENGTH + INVERTBITS_LENGTH + 1, dropNRPNMSBvalue);
+   EEPROM.update(baseAddress + sizeof(knobInfo) + INVERTBITS_LENGTH + 1, dropNRPNMSBvalue);
 
   //Visual feedback
   //we wait a bit with the LED oon
