@@ -8,8 +8,8 @@
 //Averages the knob position and decides if a message should be outputed, if yes, decodes the current preset and sends the acording message
 void interpretKnob(uint8_t index, bool force, bool inhibit) {
 
-
-  //we average the values in the buffers
+  // read averaged position of knob
+  uint16_t toSend = getKnobValue(index);
   
   //if the value to send is relevant, we send it to the MIDI OUT port
   if (((toSend != emittedValue[0][index]) && (toSend != emittedValue[1][index]) && (toSend != emittedValue[2][index])) || (force == true)) {  //if a message should be sent
@@ -17,9 +17,9 @@ void interpretKnob(uint8_t index, bool force, bool inhibit) {
     uint8_t knobSpec[3];  //holds the preset preferences for that knob
 
     //look at the knobInfo array to know how we should format the data
-    knobSpec[0] = knobInfo[index].CC;  //the CC byte
-    knobSpec[1] = knobInfo[index].NRPN; //the NRPN byte
-    knobSpec[2] = knobInfo[index].SYSEX; //the sysex byte
+    knobSpec[0] = activePreset.knobInfo[index].CC;  //the CC byte
+    knobSpec[1] = activePreset.knobInfo[index].NRPN; //the NRPN byte
+    knobSpec[2] = activePreset.knobInfo[index].SYSEX; //the sysex byte
 
     //First we detect which kind of knob it is and we emit the data accordingly
     if (bitRead(knobSpec[2], 7) == 1) {
@@ -32,7 +32,7 @@ void interpretKnob(uint8_t index, bool force, bool inhibit) {
             MIDI.sendControlChange(knobSpec[0] & 0x7f, toSend, knobChannel);
           }
           else if (knobChannel == 0) { //if the channel number is 0, the CC will be sent on the global channel
-            MIDI.sendControlChange(knobSpec[0], toSend, channel);
+            MIDI.sendControlChange(knobSpec[0], toSend, activePreset.channel);
           }
         }
       }
@@ -44,23 +44,23 @@ void interpretKnob(uint8_t index, bool force, bool inhibit) {
         if (!inhibit) {
           if ((knobSpec[1] & 0x80) && (knobSpec[0] & 0x80)) //if the knob is Unipolar NRPN (range : 0~+Max)
           {
-            sendUnipolarNRPN(knobSpec[1], knobSpec[0], map(toSend, 0, 127, 0, range), channel);
+            sendUnipolarNRPN(knobSpec[1], knobSpec[0], map(toSend, 0, 127, 0, range), activePreset.channel);
           }
           else {  //the knob is Bipolar NRPN (range : -63~+63)
-            if (range < 64) sendBipolarNRPN(knobSpec[1], knobSpec[0], map(toSend, 0, 127, -range, range), channel);
+            if (range < 64) sendBipolarNRPN(knobSpec[1], knobSpec[0], map(toSend, 0, 127, -range, range), activePreset.channel);
             else if ( range <= 64 + 4) {
               switch (range) {
                 case 64 :
-                  sendExtendedNRPN(knobSpec[1], knobSpec[0], map(toSend, 0, 127, 0, 164), channel);
+                  sendExtendedNRPN(knobSpec[1], knobSpec[0], map(toSend, 0, 127, 0, 164), activePreset.channel);
                   break;
                 case 65 :
-                  sendExtendedNRPN(knobSpec[1], knobSpec[0], map(toSend, 0, 127, 0, 200), channel);
+                  sendExtendedNRPN(knobSpec[1], knobSpec[0], map(toSend, 0, 127, 0, 200), activePreset.channel);
                   break;
                 case 66 :
-                  sendExtendedNRPN(knobSpec[1], knobSpec[0], map(toSend, 0, 127, 0, 1600), channel);
+                  sendExtendedNRPN(knobSpec[1], knobSpec[0], map(toSend, 0, 127, 0, 1600), activePreset.channel);
                   break;
                 case 67 :
-                  sendExtendedNRPN(knobSpec[1], knobSpec[0], map(toSend, 0, 127, 0, 2000), channel);
+                  sendExtendedNRPN(knobSpec[1], knobSpec[0], map(toSend, 0, 127, 0, 2000), activePreset.channel);
                   break;
               }
             }
@@ -86,7 +86,7 @@ void sendUnipolarNRPN(uint8_t NRPNNumberMSB, uint8_t NRPNNumberLSB, uint8_t valu
   MIDI.sendControlChange(98, NRPNNumberLSB & 0x7F, channel); //NRPN Number LSB
   MIDI.sendControlChange(99, NRPNNumberMSB & 0x7F, channel);  //NRPN Number MSB
   MIDI.sendControlChange(6, value, channel);  //NRPN Value
-  if(!dropNRPNMSBvalue) {
+  if(!activePreset.dropNRPNMSBvalue) {
   MIDI.sendControlChange(38, 0, channel);  //NRPN Value
   }
 }
@@ -137,10 +137,6 @@ void sendDX7Message(uint8_t paramNBR, uint8_t rangeMax, uint8_t value) {
 
 
 
-
-
-
-
 //Handles the "menu" system, what to do when the button is pressed
 void renderFunctionButton() {
   if (!digitalRead(BUTTON_PIN)) {
@@ -180,7 +176,7 @@ void renderFunctionButton() {
       for (uint8_t channelKnob = 0; channelKnob < 16; channelKnob++) {
         //if one the knobs associated to the MIDI channel selection has moved enough
         if (abs(knobBuffer[0][channelKnob] - knobBuffer[1][channelKnob]) > THRESHOLD) {
-          channel = channelKnob + 1;
+          activePreset.channel = channelKnob + 1;
           //give a visual feedback to prove that the channel has changed
           digitalWrite(LED_PIN, LOW);
           delay(100);
@@ -192,8 +188,8 @@ void renderFunctionButton() {
       for (uint8_t presetKnob = 50; presetKnob < 55; presetKnob++) {
         //if one of the knobs associated with the preset selection has moved enough
         if (abs(knobBuffer[0][presetKnob] - knobBuffer[1][presetKnob]) > THRESHOLD) {
-          currentPreset = presetKnob - 50;
-          loadPreset(currentPreset);
+          currentPresetNumber = presetKnob - 50;
+          loadPreset(currentPresetNumber);
           //give a visual feedback to prove that the preset has changed
           digitalWrite(LED_PIN, LOW);
           delay(250);
@@ -213,7 +209,7 @@ void renderFunctionButton() {
 //return 0 if not inverted, not 0 otherwise
 uint64_t isInverted(uint8_t index) {
   uint64_t offset = (uint64_t)index;
-  return (invertBits & ((uint64_t)1 << offset)) >> offset;
+  return (activePreset.invertBits & ((uint64_t)1 << offset)) >> offset;
 }
 
 void clearBits64(uint64_t & value, uint8_t index) { 

@@ -16,12 +16,12 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
           //PARAM 2 : the CC number
           if (data[PARAM1] < NUMBEROFKNOBS) {
             uint8_t knobIndex = data[PARAM1];
-            knobInfo[knobIndex].CC = data[PARAM2];
-            knobInfo[knobIndex].NRPN = 0;
-            knobInfo[knobIndex].SYSEX = 128;
+            activePreset.knobInfo[knobIndex].CC = data[PARAM2];
+            activePreset.knobInfo[knobIndex].NRPN = 0;
+            activePreset.knobInfo[knobIndex].SYSEX = 128;
 
             //knob in normal mode by default
-            clearBits64(invertBits, data[PARAM1]);
+            clearBits64(activePreset.invertBits, data[PARAM1]);
           }
 
           break;
@@ -34,12 +34,12 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
           //PARAM 3 : the MIDI channel of that knob
           if (data[PARAM1] < NUMBEROFKNOBS) {
             uint8_t knobIndex = data[PARAM1];
-            knobInfo[knobIndex].CC = data[PARAM2];
-            knobInfo[knobIndex].NRPN = 0;
-            knobInfo[knobIndex].SYSEX = data[PARAM3] | 0x80;
+            activePreset.knobInfo[knobIndex].CC = data[PARAM2];
+            activePreset.knobInfo[knobIndex].NRPN = 0;
+            activePreset.knobInfo[knobIndex].SYSEX = data[PARAM3] | 0x80;
 
             //knob in normal mode by default
-            clearBits64(invertBits, data[PARAM1]);
+            clearBits64(activePreset.invertBits, data[PARAM1]);
           }
 
           break;
@@ -50,9 +50,9 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
           //PARAM 1 : which knob do we affect ?
           if (data[PARAM1] < NUMBEROFKNOBS) {
             uint8_t knobIndex = data[PARAM1];
-            knobInfo[knobIndex].CC  = 0;  //bullshit CC
-            knobInfo[knobIndex].NRPN = 0;
-            knobInfo[knobIndex].SYSEX = 17 | 0x80; //out of range -> knob disabled
+            activePreset.knobInfo[knobIndex].CC  = 0;  //bullshit CC
+            activePreset.knobInfo[knobIndex].NRPN = 0;
+            activePreset.knobInfo[knobIndex].SYSEX = 17 | 0x80; //out of range -> knob disabled
           }
 
           break;
@@ -67,13 +67,13 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
           if (data[PARAM1] < NUMBEROFKNOBS) {
             uint8_t range = data[PARAM4];
             uint8_t knobIndex = data[PARAM1];
-            knobInfo[knobIndex].CC = data[PARAM2];
-            knobInfo[knobIndex].NRPN = data[PARAM3] | 0x80;
+            activePreset.knobInfo[knobIndex].CC = data[PARAM2];
+            activePreset.knobInfo[knobIndex].NRPN = data[PARAM3] | 0x80;
             if (range > 63) range = 63;
-            knobInfo[knobIndex].SYSEX = 128 + range;
+            activePreset.knobInfo[knobIndex].SYSEX = 128 + range;
 
             //knob in normal mode by default
-            clearBits64(invertBits, data[PARAM1]);
+            clearBits64(activePreset.invertBits, data[PARAM1]);
           }
 
           break;
@@ -87,12 +87,12 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
           //PARAM 4 : NRPN range (0 to +range), max range : 127
           if (data[PARAM1] < NUMBEROFKNOBS) {
             uint8_t knobIndex = data[PARAM1];
-            knobInfo[knobIndex].CC = data[PARAM2] | 0x80;
-            knobInfo[knobIndex].NRPN = data[PARAM3] | 0x80;
-            knobInfo[knobIndex].SYSEX = 128 + data[PARAM4];
+            activePreset.knobInfo[knobIndex].CC = data[PARAM2] | 0x80;
+            activePreset.knobInfo[knobIndex].NRPN = data[PARAM3] | 0x80;
+            activePreset.knobInfo[knobIndex].SYSEX = 128 + data[PARAM4];
 
             //knob in normal mode by default
-            clearBits64(invertBits, data[PARAM1]);
+            clearBits64(activePreset.invertBits, data[PARAM1]);
           }
 
           break;
@@ -109,8 +109,8 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
           if (data[PARAM1] < NUMBEROFKNOBS) {
             uint8_t range = data[PARAM4];
             uint8_t knobIndex = data[PARAM1];
-            knobInfo[knobIndex].CC = data[PARAM2];
-            knobInfo[knobIndex].NRPN = data[PARAM3] | 0x80;
+            activePreset.knobInfo[knobIndex].CC = data[PARAM2];
+            activePreset.knobInfo[knobIndex].NRPN = data[PARAM3] | 0x80;
             switch (range) {
               case 1 :
                 range = 63 + 1; //+164
@@ -128,10 +128,10 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
                 range = 63 + 10; //wrong number -> no action
                 break;
             }
-            knobInfo[knobIndex].SYSEX = 128 + range;
+            activePreset.knobInfo[knobIndex].SYSEX = 128 + range;
 
             //knob in normal mode by default
-            clearBits64(invertBits, data[PARAM1]);
+            clearBits64(activePreset.invertBits, data[PARAM1]);
           }
 
           break;
@@ -145,12 +145,12 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
           //PARAM 4 : maximum value that can be reached by that parameter
           if (data[PARAM1] < NUMBEROFKNOBS) {
             uint8_t knobIndex = data[PARAM1];
-            knobInfo[knobIndex].CC = 0;
-            knobInfo[knobIndex].NRPN = (data[PARAM2] << 7) | data[PARAM3];
-            knobInfo[knobIndex].SYSEX = data[PARAM4];
+            activePreset.knobInfo[knobIndex].CC = 0;
+            activePreset.knobInfo[knobIndex].NRPN = (data[PARAM2] << 7) | data[PARAM3];
+            activePreset.knobInfo[knobIndex].SYSEX = data[PARAM4];
 
             //knob in normal mode by default
-            clearBits64(invertBits, data[PARAM1]);
+            clearBits64(activePreset.invertBits, data[PARAM1]);
           }
 
           break;
@@ -162,10 +162,10 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
           //PARAM2 : 0-> knob in normal mode; 1-> knob in invert mode
           if (data[PARAM1] < NUMBEROFKNOBS) {
             if (data[PARAM2] == 0) {
-              clearBits64(invertBits, data[PARAM1]);
+              clearBits64(activePreset.invertBits, data[PARAM1]);
             }
             else {
-              invertBits = invertBits | (((uint64_t)1) << data[PARAM1]);
+              activePreset.invertBits |=  (((uint64_t)1) << data[PARAM1]);
               //bitSet(invertBits, data[PARAM1]);
             }
           }
@@ -176,9 +176,9 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
       case DROPNRPNMSB :
         {
           if(data[PARAM1] > 0) {
-            dropNRPNMSBvalue = true;        
+            activePreset.dropNRPNMSBvalue = true;        
           } else {
-            dropNRPNMSBvalue = false;
+            activePreset.dropNRPNMSBvalue = false;
           }
         }
 
@@ -217,7 +217,7 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
         {
           //PARAM 1 : MIDI channel  (1 to 16)
           if (data[PARAM1] < 17 && data[PARAM1] > 0) {
-            channel = data[PARAM1];
+            activePreset.channel = data[PARAM1];
           }
 
           break;
@@ -229,7 +229,7 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
           //PARAM 2 : Max CC number
           if (data[PARAM1] < 127 && data[PARAM2] >= data[PARAM1]) {
             for (int i = data[PARAM1]; i <= data[PARAM2]; i++) {
-              MIDI.sendControlChange(i, random(0, 127), channel);
+              MIDI.sendControlChange(i, random(0, 127), activePreset.channel);
             }
 
           }
@@ -244,7 +244,7 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
 void handleProgramChange(byte channel, byte number) {
   if (number < 5) {
     loadPreset(number);
-    currentPreset = number;
+    currentPresetNumber = number;
   }
 }
 

@@ -35,7 +35,7 @@ void updateKnob(uint8_t index) {
 /*
 *  Returns average of previous knob reads
 */
-uint16_t getKnobValue(uint8_t knobIndex)
+uint16_t getKnobValue(uint8_t index)
 {  
   uint16_t average = 0;
   for (int i = 0; i < 4; i++) {

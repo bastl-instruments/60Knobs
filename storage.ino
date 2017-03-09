@@ -18,40 +18,48 @@ uint8_t firstStartupCheck() {
 }
 
 void formatFactory() {
+  
   //First program the Last Used Preset : the first one
   EEPROM.update(0, 0x01);
-  //we write the first default preset to the corresponding slots
-  for (int address = 1; address < PRESET_LENGTH; address++) {
-    EEPROM.update(address, factory_preset_1[address - 1]);
+  
+  // Create default preset
+  Preset_t defaultPreset;
+  defaultPreset.channel = 1;
+  for (uint8_t i=0; i<NUMBEROFKNOBS; i++) {
+    defaultPreset.knobInfo[i].CC = 0;
+    defaultPreset.knobInfo[i].NRPN = 0;
+    defaultPreset.knobInfo[i].SYSEX = 0;
+  }
+  defaultPreset.invertBits = 0;
+  defaultPreset.dropNRPNMSBvalue = 0;
+  
+  // we write the first default preset to the corresponding slots
+  // write the active preset to EEPROM; byte by byte
+  uint16_t baseAddress = 1;  
+  for (uint16_t byteIndex=0; byteIndex<sizeof(Preset_t); byteIndex++) {
+    EEPROM.update(baseAddress + byteIndex, ((uint8_t*)(&defaultPreset))[byteIndex]);
   }
 
   //we repeat that stage for the 4 remaining presets
+  // to be done...
+  
+  
   //we write the signature so that the device will never rewrite the factory presets
   EEPROM.update(EEPROM.length() - 3, 0xB0);
   EEPROM.update(EEPROM.length() - 2, 0x0B);
   EEPROM.update(EEPROM.length() - 1, 0x1E);
 }
 
+
 //Loads the specified preset in the RAM and make it the last used preset
 void loadPreset(uint8_t presetNumber) {
-  uint16_t baseAddress = presetNumber * (PRESET_LENGTH - 1) + 1;
+  
+  uint16_t baseAddress = presetNumber * sizeof(Preset_t) + 1;
 
-  //We load the global MIDI channel of the selected preset
-  channel = EEPROM.read(baseAddress);
-
-  //We can now copy the knobsDescriptors in RAM
-  for (uint8_t i = 0; i < sizeof(knobInfo); i++) {
-    ((uint8_t*)knobInfo)[i] = EEPROM.read(baseAddress + 1 + i);
+  // read the active preset from EEPROM; byte by byte  
+  for (uint16_t byteIndex=0; byteIndex<sizeof(Preset_t); byteIndex++) {
+    ((uint8_t*)(&activePreset))[byteIndex] = EEPROM.read(baseAddress + byteIndex);
   }
-
-  //and finally load the inversion bits
-  invertBits = 0;
-  for (int i = 0; i < sizeof(invertBits); i++) {
-    uint64_t eepromValue = (uint64_t)(EEPROM.read(baseAddress + sizeof(knobInfo) + 1 + i));
-    invertBits |= eepromValue << (i * 8);
-  }
-
-  dropNRPNMSBvalue = EEPROM.read(baseAddress + sizeof(knobInfo) + sizeof(invertBits) + 1);
 
   //update the last used preset
   EEPROM.update(0, presetNumber);
@@ -61,25 +69,13 @@ void loadPreset(uint8_t presetNumber) {
 
 void savePreset(uint8_t presetNbr)
 {
-  uint16_t baseAddress = presetNbr * (PRESET_LENGTH - 1) + 1;
+  uint16_t baseAddress = presetNbr * sizeof(Preset_t) + 1;
 
-  EEPROM.update(baseAddress, channel); //write the channel in the EEPROM
-
-  //write the knobs descriptors in the EEPROM
-  for (int i = 0; i < sizeof(knobInfo); i++) {
-    EEPROM.update(baseAddress + 1 + i, ((uint8_t*)knobInfo)[i]);
+  // write the active preset to EEPROM; byte by byte  
+  for (uint16_t byteIndex=0; byteIndex<sizeof(Preset_t); byteIndex++) {
+    EEPROM.update(baseAddress + byteIndex, ((uint8_t*)(&activePreset))[byteIndex]);
   }
-
- 
-
-  //finally write the inversion bits to the EEPROM
-  for (int i = 0; i < sizeof(invertBits); i++) {
-    uint8_t oneByteValue = (invertBits >> (i * 8));
-    EEPROM.update(baseAddress + sizeof(knobInfo) + 1 + i, oneByteValue);
-  }
-
-   EEPROM.update(baseAddress + sizeof(knobInfo) + sizeof(invertBits) + 1, dropNRPNMSBvalue);
-
+  
   //Visual feedback
   //we wait a bit with the LED oon
   digitalWrite(LED_PIN, HIGH);

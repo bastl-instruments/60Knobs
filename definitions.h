@@ -44,7 +44,7 @@ enum Command_t {
 #define CLICKSPEEDMAX 350
 
 /*---   PRESET MANAGEMENT CONSTANTS   ---*/
-#define PRESET_LENGTH 191
+//#define PRESET_LENGTH 191
 
 
 /*---   MISC. CONSTANTS   ---*/
