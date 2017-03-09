@@ -2,33 +2,41 @@
  * This file contains all the definitions of the constats used throughout the code
  */
 
+#ifndef INC_GUARD_DEFINITIONS
+#define INC_GUARD_DEFINITIONS
+
 #include <stdint.h>
 
 /*---   SYSEX INTERPRETER CONSTANTS   ---*/
-#define BASTL 48
-#define MANUFACTURER 1
-#define COMMAND 2
-#define PARAM1 3
-#define PARAM2 4
-#define PARAM3 5
-#define PARAM4 6
+const uint8_t BASTL_MANUFACTURER_ID = 48;
+
+enum SysexByteNumber_t {
+  MANUFACTURER = 1,
+  COMMAND = 2,
+  PARAM1 = 3,
+  PARAM2 = 4,
+  PARAM3 = 5,
+  PARAM4 = 6
+};
 
 //the numbers associated with every command in the interpreter
-#define SETKNOBASGLOBALCC 1
-#define SETKNOBASINDEPCC 15
-#define SETKNOBASBNRPN 2
-#define SETKNOBASUNRPN 3
-#define SETKNOBASDX 4
-#define PRESETSAVE 5
-#define PRESETLOAD 6
-#define DUMPPRESET 7
-#define SYNCKNOBS 8
-#define CHANNELCHANGE 9
-#define DISABLEKNOB 16
-#define RANDOMIZER 10
-#define INVERTKNOB 17
-#define DROPNRPNMSB 19
-#define SETKNOBASENRPN 18
+enum Command_t {
+  SETKNOBASGLOBALCC = 1,
+  SETKNOBASINDEPCC = 15,
+  SETKNOBASBNRPN = 2,
+  SETKNOBASUNRPN = 3,
+  SETKNOBASDX = 4,
+  PRESETSAVE = 5,
+  PRESETLOAD = 6,
+  DUMPPRESET = 7,
+  SYNCKNOBS = 8,
+  CHANNELCHANGE = 9,
+  DISABLEKNOB = 16,
+  RANDOMIZER = 10,
+  INVERTKNOB = 17,
+  DROPNRPNMSB = 19,
+  SETKNOBASENRPN = 18
+};
 
 /*---   FUNCTION BUTTON CONSTANTS   ---*/
 #define THRESHOLD 2
@@ -43,5 +51,5 @@
 /*---   MISC. CONSTANTS   ---*/
 #define NUMBEROFKNOBS 60
 
-
+#endif
 

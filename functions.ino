@@ -204,7 +204,7 @@ void loadPreset(uint8_t presetNumber) {
 void sysExInterpreter(byte* data, unsigned messageLength) {
 
   //check if this is a valid Sysex message
-  if (data[MANUFACTURER] == BASTL) {
+  if (data[MANUFACTURER] == BASTL_MANUFACTURER_ID) {
     //check the command byte and acts accordingly
     switch (data[COMMAND]) {
 
