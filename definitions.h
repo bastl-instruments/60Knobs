@@ -2,9 +2,7 @@
  * This file contains all the definitions of the constats used throughout the code
  */
 
-#include "stdint.h"
-
-#define byte uint8_t
+#include <stdint.h>
 
 /*---   SYSEX INTERPRETER CONSTANTS   ---*/
 #define BASTL 48

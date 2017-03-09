@@ -3,8 +3,11 @@
    
 */
 
+/* EXTERNAL LIBRARIES */
 #include <MIDI.h>
 #include <EEPROM.h>
+
+/* OTHER CUSTOM FILES */
 #include "definitions.h"
 #include "functions.h"
 #include "variables.h"
@@ -25,7 +28,8 @@ MIDI_CREATE_DEFAULT_INSTANCE();
 
 /*---   INIT CODE   ---*/
 void setup() {
-  //setup the pins
+  
+  // Setup the pins
   pinMode(MIDI_TX_PIN, OUTPUT);
   digitalWrite(MIDI_TX_PIN, HIGH);  //make sure no random messages are sent to the MIDI port during init
   pinMode(MAIN_MUX_S0, OUTPUT);
@@ -71,10 +75,11 @@ void setup() {
 /*---   MAIN LOOP   ---*/
 //all the MIDI.read() statements are here to reduce the latency of the device
 void loop() {
-  //we turn the LED on
+  
+  // we turn the LED on
   digitalWrite(LED_PIN, HIGH);
 
-  //we scan the knobs one by one and send the corresponding data
+  // we scan the knobs one by one and send the corresponding data
   for (int currentKnob = 0; currentKnob < 60; currentKnob++) {
     MIDI.read();
     selectKnob(currentKnob);  //Sets up the MUXs to direct the right knob to the analog input
