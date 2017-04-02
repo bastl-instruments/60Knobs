@@ -173,12 +173,12 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
         }
 
 
-      case DROPNRPNMSB :
+      case DROPNRPNLSB :
         {
           if(data[PARAM1] > 0) {
-            activePreset.dropNRPNMSBvalue = true;        
+            activePreset.dropNRPNLSBvalue = true;        
           } else {
-            activePreset.dropNRPNMSBvalue = false;
+            activePreset.dropNRPNLSBvalue = false;
           }
         }
 

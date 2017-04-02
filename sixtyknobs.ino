@@ -1,8 +1,3 @@
-/*
-   TODO:  re-comment the whole thing
-   
-*/
-
 /* EXTERNAL LIBRARIES */
 #include <MIDI.h>
 #include <EEPROM.h>

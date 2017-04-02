@@ -31,7 +31,7 @@ void formatFactory() {
     defaultPreset.knobInfo[i].SYSEX = 0;
   }
   defaultPreset.invertBits = 0;
-  defaultPreset.dropNRPNMSBvalue = 0;
+  defaultPreset.dropNRPNLSBvalue = 0;
   
   // we write the first default preset to the corresponding slots
   // write the active preset to EEPROM; byte by byte

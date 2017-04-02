@@ -86,7 +86,7 @@ void sendUnipolarNRPN(uint8_t NRPNNumberMSB, uint8_t NRPNNumberLSB, uint8_t valu
   MIDI.sendControlChange(98, NRPNNumberLSB & 0x7F, channel); //NRPN Number LSB
   MIDI.sendControlChange(99, NRPNNumberMSB & 0x7F, channel);  //NRPN Number MSB
   MIDI.sendControlChange(6, value, channel);  //NRPN Value
-  if(!activePreset.dropNRPNMSBvalue) {
+  if(!activePreset.dropNRPNLSBvalue) {
   MIDI.sendControlChange(38, 0, channel);  //NRPN Value
   }
 }

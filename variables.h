@@ -20,8 +20,8 @@ struct Preset_t {
   // compressed bitarray also for knobs setup
   uint64_t invertBits;
   
-  // should NRPN MSB be dropped if it is zero
-  bool dropNRPNMSBvalue;
+  // should NRPN LSB be not sent if it is zero
+  bool dropNRPNLSBvalue;
 };
 
 
