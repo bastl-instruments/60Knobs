@@ -45,5 +45,6 @@ const uint8_t KnobSelectThreshold = 2;
 
 /*---   MISC. CONSTANTS   ---*/
 const uint8_t NUMBEROFKNOBS = 60;
+const uint8_t NUMBEROFPRESETS = 4;
 
 #endif

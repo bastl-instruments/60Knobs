@@ -207,16 +207,13 @@ void formatFactory() {
   defaultPreset.invertBits = 0;
   defaultPreset.dropNRPNLSBvalue = 0;
   
-  // we write the first default preset to the corresponding slots
-  // write the active preset to EEPROM; byte by byte
-  uint16_t baseAddress = 1;  
-  for (uint16_t byteIndex=0; byteIndex<sizeof(Preset_t); byteIndex++) {
-    EEPROM.update(baseAddress + byteIndex, ((uint8_t*)(&defaultPreset))[byteIndex]);
+  // we write the default preset to all preset slots, byte by byte
+  uint16_t baseAddress = 1;
+  for (uint8_t p=0; p<NUMBEROFPRESETS; p++) { 
+    for (uint16_t byteIndex=0; byteIndex<sizeof(Preset_t); byteIndex++) {
+      EEPROM.update(baseAddress + p*sizeof(Preset_t) + byteIndex, ((uint8_t*)(&defaultPreset))[byteIndex]);
+    }
   }
-
-  //we repeat that stage for the 4 remaining presets
-  // to be done...
-  
   
   //we write the signature so that the device will never rewrite the factory presets
   EEPROM.update(EEPROM.length() - 3, 0xB0);
