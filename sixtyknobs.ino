@@ -42,7 +42,7 @@ void setup() {
   }
 
   //Load the last used preset
-  currentPresetNumber = EEPROM.read(0);
+  currentPresetNumber = EEPROM.read(lastUsedPresetAddress);
   loadPreset(currentPresetNumber);
 
   //We initialise the button press monitoring system

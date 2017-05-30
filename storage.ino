@@ -19,8 +19,8 @@ uint8_t firstStartupCheck() {
 
 void formatFactory() {
   
-  //First program the Last Used Preset : the first one
-  EEPROM.update(0, 0x01);
+  // set last used preset to number 0
+  EEPROM.update(lastUsedPresetAddress, 0);
   
   // Create default preset
   Preset_t defaultPreset;
@@ -95,27 +95,27 @@ void formatFactory() {
     defaultPreset.knobInfo[22].CC = 55;
     defaultPreset.knobInfo[22].NRPN = 0;
     defaultPreset.knobInfo[22].SYSEX = 128;
-    defaultPreset.knobInfo[23].CC = 77;
+    defaultPreset.knobInfo[23].CC = 55;
     defaultPreset.knobInfo[23].NRPN = 0;
     defaultPreset.knobInfo[23].SYSEX = 128;
-    defaultPreset.knobInfo[24].CC = 40;
+    defaultPreset.knobInfo[24].CC = 77;
     defaultPreset.knobInfo[24].NRPN = 0;
     defaultPreset.knobInfo[24].SYSEX = 128;
-    defaultPreset.knobInfo[25].CC = 46;
+    defaultPreset.knobInfo[25].CC = 40;
     defaultPreset.knobInfo[25].NRPN = 0;
     defaultPreset.knobInfo[25].SYSEX = 128;
-    defaultPreset.knobInfo[26].CC = 111;
+    defaultPreset.knobInfo[26].CC = 46;
     defaultPreset.knobInfo[26].NRPN = 0;
     defaultPreset.knobInfo[26].SYSEX = 128;
-    defaultPreset.knobInfo[27].CC = 91;
+    defaultPreset.knobInfo[27].CC = 111;
     defaultPreset.knobInfo[27].NRPN = 0;
     defaultPreset.knobInfo[27].SYSEX = 128;
-    defaultPreset.knobInfo[28].CC = 53 | 0x80;
-    defaultPreset.knobInfo[28].NRPN = 0 | 0x80;
-    defaultPreset.knobInfo[28].SYSEX = 128 + 11;
-    defaultPreset.knobInfo[29].CC = 124;
-    defaultPreset.knobInfo[29].NRPN = 0;
-    defaultPreset.knobInfo[29].SYSEX = 128;
+    defaultPreset.knobInfo[28].CC = 91;
+    defaultPreset.knobInfo[28].NRPN = 0;
+    defaultPreset.knobInfo[28].SYSEX = 128;
+    defaultPreset.knobInfo[29].CC = 53 | 0x80;
+    defaultPreset.knobInfo[29].NRPN = 0 | 0x80;
+    defaultPreset.knobInfo[29].SYSEX = 128 + 11;
     defaultPreset.knobInfo[30].CC = 15;
     defaultPreset.knobInfo[30].NRPN = 0;
     defaultPreset.knobInfo[30].SYSEX = 128;
@@ -197,9 +197,6 @@ void formatFactory() {
     defaultPreset.knobInfo[56].CC = 114;
     defaultPreset.knobInfo[56].NRPN = 0;
     defaultPreset.knobInfo[56].SYSEX = 128;
-    defaultPreset.knobInfo[57].CC = 94;
-    defaultPreset.knobInfo[57].NRPN = 0;
-    defaultPreset.knobInfo[57].SYSEX = 128;
     defaultPreset.knobInfo[58].CC = 56 | 0x80;
     defaultPreset.knobInfo[58].NRPN = 0 | 0x80;
     defaultPreset.knobInfo[58].SYSEX = 128 + 11;
@@ -228,7 +225,7 @@ void formatFactory() {
 //Loads the specified preset in the RAM and make it the last used preset
 void loadPreset(uint8_t presetNumber) {
   
-  uint16_t baseAddress = presetNumber * sizeof(Preset_t) + 1;
+  uint16_t baseAddress = 1 + (presetNumber * sizeof(Preset_t));
 
   // read the active preset from EEPROM; byte by byte  
   for (uint16_t byteIndex=0; byteIndex<sizeof(Preset_t); byteIndex++) {
@@ -236,7 +233,7 @@ void loadPreset(uint8_t presetNumber) {
   }
 
   //update the last used preset
-  EEPROM.update(0, presetNumber);
+  EEPROM.update(lastUsedPresetAddress, presetNumber);
 }
 
 

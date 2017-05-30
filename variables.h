@@ -44,4 +44,7 @@ uint8_t knobBuffer[4][60];
 uint8_t emittedValue[3][60];
 unsigned long lastButtonPress;  //stores the timestamp of the last button press
 
+// byte index in EEPROM for the last used preset
+const uint8_t lastUsedPresetAddress = 0;
+
 #endif
