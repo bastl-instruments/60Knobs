@@ -37,7 +37,7 @@ void setup() {
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 
   //if this is the first time the device is powered on, we write the factory presets in the memory
-  if(firstStartupCheck()) {
+  if(!isEEPROMvalid()) {
     formatFactory();
   }
 

@@ -2,7 +2,7 @@
 #include "definitions.h"
 
 //checks if the machine starts up for the first time and loads the factory presets if needed
-uint8_t firstStartupCheck() {
+bool isEEPROMvalid() {
   //we check if this is the first startup of the machine
   uint8_t byte1, byte2, byte3;
 
@@ -11,10 +11,7 @@ uint8_t firstStartupCheck() {
   byte3 = EEPROM.read(EEPROM.length() - 1);
 
   //if this is the first time this device is powered on
-  if ((byte1 != 0xB0) && (byte2 != 0x0B) && (byte3 != 0x1E)) {  //"boobie" signature yay !
-    return 1;
-  }
-  else return 0;
+  return ((byte1 == 0xB0) && (byte2 == 0x0B) && (byte3 == 0x1E));  //"boobie" signature yay !
 }
 
 void formatFactory() {
