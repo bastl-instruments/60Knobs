@@ -244,7 +244,6 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
 void handleProgramChange(byte channel, byte number) {
   if (number < 5) {
     loadPreset(number);
-    currentPresetNumber = number;
   }
 }
 

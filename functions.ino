@@ -181,8 +181,7 @@ void renderFunctionButton() {
       for (uint8_t presetKnob = 50; presetKnob < 55; presetKnob++) {
         //if one of the knobs associated with the preset selection has moved enough
         if (abs(knobBuffer[0][presetKnob] - knobBuffer[1][presetKnob]) > KnobSelectThreshold) {
-          currentPresetNumber = presetKnob - 50;
-          loadPreset(currentPresetNumber);
+          loadPreset(presetKnob - 50);
           //give a visual feedback to prove that the preset has changed
           digitalWrite(LED_PIN, LOW);
           delay(250);

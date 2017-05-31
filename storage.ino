@@ -230,7 +230,8 @@ void loadPreset(uint8_t presetNumber) {
   }
 
   //update the last used preset
-  EEPROM.update(lastUsedPresetAddress, presetNumber);
+  currentPresetNumber = presetNumber;
+  EEPROM.update(lastUsedPresetAddress, currentPresetNumber);
 }
 
 

@@ -41,9 +41,8 @@ void setup() {
     formatFactory();
   }
 
-  //Load the last used preset
-  currentPresetNumber = EEPROM.read(lastUsedPresetAddress);
-  loadPreset(currentPresetNumber);
+  //Load the last used preset as stored in EEPROM
+  loadPreset(EEPROM.read(lastUsedPresetAddress));
 
   //We initialise the button press monitoring system
   lastButtonPress = millis();
