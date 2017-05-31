@@ -4,7 +4,6 @@
 
 /* OTHER CUSTOM FILES */
 #include "definitions.h"
-#include "functions.h"
 #include "variables.h"
 
 /*---   PIN DEFINITION   ---*/

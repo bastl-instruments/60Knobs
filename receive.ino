@@ -1,7 +1,3 @@
-#include "functions.h"
-#include "definitions.h"
-
-
 //Is executed everytime a Sysex message is received
 void sysExInterpreter(byte* data, unsigned messageLength) {
 

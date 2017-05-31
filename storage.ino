@@ -1,6 +1,3 @@
-#include "functions.h"
-#include "definitions.h"
-
 //checks if the machine starts up for the first time and loads the factory presets if needed
 bool isEEPROMvalid() {
   //we check if this is the first startup of the machine

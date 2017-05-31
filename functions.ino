@@ -2,9 +2,6 @@
    This file includes all the code associated to the prototypes defined in "functions.h"
 */
 
-#include "functions.h"
-#include "definitions.h"
-
 //Averages the knob position and decides if a message should be outputed, if yes, decodes the current preset and sends the acording message
 void interpretKnob(uint8_t index, bool force, bool inhibit) {
 

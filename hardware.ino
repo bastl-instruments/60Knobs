@@ -1,8 +1,3 @@
-
-#include "functions.h"
-#include "definitions.h"
-
-
 //Sets up the MUXs in order to select the specified knob
 void selectKnob(uint8_t index) {
   //get the configuration of the MUXs according to the lookup table
