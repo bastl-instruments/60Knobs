@@ -14,53 +14,46 @@ void interpretKnob(uint8_t index, bool force, bool inhibit) {
   //if the value to send is relevant, we send it to the MIDI OUT port
   if (((toSend != emittedValue[0][index]) && (toSend != emittedValue[1][index]) && (toSend != emittedValue[2][index])) || (force == true)) {  //if a message should be sent
   
-    uint8_t knobSpec[3];  //holds the preset preferences for that knob
-
-    //look at the knobInfo array to know how we should format the data
-    knobSpec[0] = activePreset.knobInfo[index].CC;  //the CC byte
-    knobSpec[1] = activePreset.knobInfo[index].NRPN; //the NRPN byte
-    knobSpec[2] = activePreset.knobInfo[index].SYSEX; //the sysex byte
-
     //First we detect which kind of knob it is and we emit the data accordingly
-    if (bitRead(knobSpec[2], 7) == 1) {
-      if (knobSpec[1] == 0) {
+    if (bitRead(activePreset.knobInfo[index].SYSEX, 7) == 1) {
+      if (activePreset.knobInfo[index].NRPN == 0) {
         /*---   It's a CC knob    ---*/
         if (!inhibit) {
           //check the channel of that specific knob
-          uint8_t knobChannel = knobSpec[2] & 0x7f;
+          uint8_t knobChannel = activePreset.knobInfo[index].SYSEX & 0x7f;
           if (knobChannel > 0 && knobChannel < 17) {
-            MIDI.sendControlChange(knobSpec[0] & 0x7f, toSend, knobChannel);
+            MIDI.sendControlChange(activePreset.knobInfo[index].CC & 0x7f, toSend, knobChannel);
           }
           else if (knobChannel == 0) { //if the channel number is 0, the CC will be sent on the global channel
-            MIDI.sendControlChange(knobSpec[0], toSend, activePreset.channel);
+            MIDI.sendControlChange(activePreset.knobInfo[index].CC, toSend, activePreset.channel);
           }
         }
       }
       else {
         /*---   It's an NRPN knob    ---*/
         //we calculate the range of the current knob
-        uint8_t range = knobSpec[2] & 0x7f;
+        uint8_t range = activePreset.knobInfo[index].SYSEX & 0x7f;
 
         if (!inhibit) {
-          if ((knobSpec[1] & 0x80) && (knobSpec[0] & 0x80)) //if the knob is Unipolar NRPN (range : 0~+Max)
+          if ((activePreset.knobInfo[index].NRPN & 0x80) && (activePreset.knobInfo[index].CC & 0x80)) //if the knob is Unipolar NRPN (range : 0~+Max)
           {
-            sendUnipolarNRPN(knobSpec[1], knobSpec[0], map(toSend, 0, 127, 0, range), activePreset.channel);
+            sendUnipolarNRPN(activePreset.knobInfo[index].NRPN, activePreset.knobInfo[index].CC, map(toSend, 0, 127, 0, range), activePreset.channel);
           }
           else {  //the knob is Bipolar NRPN (range : -63~+63)
-            if (range < 64) sendBipolarNRPN(knobSpec[1], knobSpec[0], map(toSend, 0, 127, -range, range), activePreset.channel);
+            if (range < 64) sendBipolarNRPN(activePreset.knobInfo[index].NRPN, activePreset.knobInfo[index].CC, map(toSend, 0, 127, -range, range), activePreset.channel);
             else if ( range <= 64 + 4) {
               switch (range) {
                 case 64 :
-                  sendExtendedNRPN(knobSpec[1], knobSpec[0], map(toSend, 0, 127, 0, 164), activePreset.channel);
+                  sendExtendedNRPN(activePreset.knobInfo[index].NRPN, activePreset.knobInfo[index].CC, map(toSend, 0, 127, 0, 164), activePreset.channel);
                   break;
                 case 65 :
-                  sendExtendedNRPN(knobSpec[1], knobSpec[0], map(toSend, 0, 127, 0, 200), activePreset.channel);
+                  sendExtendedNRPN(activePreset.knobInfo[index].NRPN, activePreset.knobInfo[index].CC, map(toSend, 0, 127, 0, 200), activePreset.channel);
                   break;
                 case 66 :
-                  sendExtendedNRPN(knobSpec[1], knobSpec[0], map(toSend, 0, 127, 0, 1600), activePreset.channel);
+                  sendExtendedNRPN(activePreset.knobInfo[index].NRPN, activePreset.knobInfo[index].CC, map(toSend, 0, 127, 0, 1600), activePreset.channel);
                   break;
                 case 67 :
-                  sendExtendedNRPN(knobSpec[1], knobSpec[0], map(toSend, 0, 127, 0, 2000), activePreset.channel);
+                  sendExtendedNRPN(activePreset.knobInfo[index].NRPN, activePreset.knobInfo[index].CC, map(toSend, 0, 127, 0, 2000), activePreset.channel);
                   break;
               }
             }
@@ -70,7 +63,7 @@ void interpretKnob(uint8_t index, bool force, bool inhibit) {
     }
     else {
       /*---   It's an DX7 SysEx knob    ---*/
-      sendDX7Message(knobSpec[1], knobSpec[2], toSend);
+      sendDX7Message(activePreset.knobInfo[index].NRPN, activePreset.knobInfo[index].SYSEX, toSend);
     }
 
     //we fill the emission buffers
