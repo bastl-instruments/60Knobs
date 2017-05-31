@@ -37,6 +37,12 @@ void setup() {
 
   //if this is the first time the device is powered on, we write the factory presets in the memory
   if(!isEEPROMvalid()) {
+    for (uint8_t i=0; i<5; i++) {
+      digitalWrite(LED_PIN, HIGH);
+      delay(300);
+      digitalWrite(LED_PIN, LOW);
+      delay(300);
+    }
     formatFactory();
   }
 
