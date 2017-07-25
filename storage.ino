@@ -8,7 +8,7 @@ bool isEEPROMvalid() {
   byte3 = EEPROM.read(EEPROM.length() - 1);
 
   //if this is the first time this device is powered on
-  return ((byte1 == 0xB0) && (byte2 == 0x0B) && (byte3 == 0x1E));  //"boobie" signature yay !
+  return ((byte1 == sigByteOne) && (byte2 == sigByteTwo) && (byte3 == sigByteThree));
 }
 
 void formatFactory() {
@@ -210,9 +210,9 @@ void formatFactory() {
   }
   
   //we write the signature so that the device will never rewrite the factory presets
-  EEPROM.update(EEPROM.length() - 3, 0xB0);
-  EEPROM.update(EEPROM.length() - 2, 0x0B);
-  EEPROM.update(EEPROM.length() - 1, 0x1E);
+  EEPROM.update(EEPROM.length() - 3, sigByteOne);
+  EEPROM.update(EEPROM.length() - 2, sigByteTwo);
+  EEPROM.update(EEPROM.length() - 1, sigByteThree);
 }
 
 

@@ -7,6 +7,15 @@
 
 #include <stdint.h>
 
+/*--- EEPROM Format Chuncks ---*/
+
+// change these any time the data structure of a preset changed
+// this will trigger reformatting on the next startup
+uint8_t sigByteOne = 0xAB;
+uint8_t sigByteTwo = 0x3D;
+uint8_t sigByteThree = 0x66;
+
+
 /*---   SYSEX INTERPRETER CONSTANTS   ---*/
 const uint8_t BASTL_MANUFACTURER_ID = 48;
 
