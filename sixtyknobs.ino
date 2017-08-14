@@ -17,7 +17,6 @@
 #define LED_PIN 18
 #define BUTTON_PIN 19
 
-
 MIDI_CREATE_DEFAULT_INSTANCE();
 
 /*---   INIT CODE   ---*/
@@ -35,6 +34,32 @@ void setup() {
   pinMode(LED_PIN, OUTPUT);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 
+  // Reset to Factory Presets
+  //check if button is pressed on startup
+  if (!digitalRead(BUTTON_PIN)) { 
+    bool buttonPressed = true;
+    digitalWrite(LED_PIN, LOW);
+      //check if button has been released before timeout
+      while (millis() < reset_timeout) {
+        if (digitalRead(BUTTON_PIN)) {
+        buttonPressed = false;
+        break;
+        }  
+      }
+      //if button still held then clear eeprom
+      if (buttonPressed) {
+        //blink one time if reset request has been accepted
+        digitalWrite(LED_PIN, HIGH);
+        delay(20);
+        digitalWrite(LED_PIN, LOW);
+        //clean eeprom
+        for (int i = 0; i < EEPROM.length(); i++) {
+        EEPROM.write(i, 0);
+        }
+        digitalWrite(LED_PIN, HIGH);
+      }
+  }
+  
   //if this is the first time the device is powered on, we write the factory presets in the memory
   if(!isEEPROMvalid()) {
     for (uint8_t i=0; i<5; i++) {
