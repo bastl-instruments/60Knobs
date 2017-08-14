@@ -7,6 +7,9 @@
 
 #include <stdint.h>
 
+//reset to factory preset timeout
+const uint16_t reset_timeout = 5000;
+
 /*--- EEPROM Format Chuncks ---*/
 
 // change these any time the data structure of a preset changed
