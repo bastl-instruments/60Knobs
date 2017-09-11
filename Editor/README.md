@@ -28,3 +28,6 @@ PRSTbpatch.maxpat - Memory slot to upload selector;
 b.Ke.maxpat - Compiles Knob settings to SysEx format;
 
 lxr_default - device factory preset (designed for Sonic Potions LXR)
+
+
+ALL THE PATCHES ARE LICENSED AS CC-BY-SA Bastl-Instruments 2017
