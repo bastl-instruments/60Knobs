@@ -7,10 +7,10 @@ void interpretKnob(uint8_t index, bool force, bool inhibit) {
 
   // read averaged position of knob
   uint16_t toSend = getKnobValue(index);
-  
+
   //if the value to send is relevant, we send it to the MIDI OUT port
   if (((toSend != emittedValue[0][index]) && (toSend != emittedValue[1][index]) && (toSend != emittedValue[2][index])) || (force == true)) {  //if a message should be sent
-  
+
     //First we detect which kind of knob it is and we emit the data accordingly
     if (bitRead(activePreset.knobInfo[index].SYSEX, 7) == 1) {
       if (activePreset.knobInfo[index].NRPN == 0) {
@@ -60,7 +60,8 @@ void interpretKnob(uint8_t index, bool force, bool inhibit) {
     }
     else {
       /*---   It's an DX7 SysEx knob    ---*/
-      sendDX7Message(activePreset.knobInfo[index].NRPN, activePreset.knobInfo[index].SYSEX, toSend);
+      sendDX7Message(activePreset.knobInfo[index].NRPN, activePreset.knobInfo[index].SYSEX, toSend); //comment this line
+    //  sendRefaceDXMessage(activePreset.knobInfo[index].NRPN, activePreset.knobInfo[index].SYSEX, toSend); // and uncomment this line to make the 60 knobs work with reface DX instead
     }
 
     //we fill the emission buffers
@@ -76,8 +77,8 @@ void sendUnipolarNRPN(uint8_t NRPNNumberMSB, uint8_t NRPNNumberLSB, uint8_t valu
   MIDI.sendControlChange(98, NRPNNumberLSB & 0x7F, channel); //NRPN Number LSB
   MIDI.sendControlChange(99, NRPNNumberMSB & 0x7F, channel);  //NRPN Number MSB
   MIDI.sendControlChange(6, value, channel);  //NRPN Value
-  if(!activePreset.dropNRPNLSBvalue) {
-  MIDI.sendControlChange(38, 0, channel);  //NRPN Value
+  if (!activePreset.dropNRPNLSBvalue) {
+    MIDI.sendControlChange(38, 0, channel);  //NRPN Value
   }
 }
 
@@ -100,7 +101,7 @@ void sendBipolarNRPN(uint8_t NRPNNumberMSB, uint8_t NRPNNumberLSB, int8_t value,
 void sendExtendedNRPN(uint8_t NRPNNumberMSB, uint8_t NRPNNumberLSB, int16_t value, uint8_t channel) {
   MIDI.sendControlChange(98, NRPNNumberLSB & 0x7F, channel); //NRPN Number LSB
   MIDI.sendControlChange(99, NRPNNumberMSB & 0x7F, channel);  //NRPN Number MSB
-  MIDI.sendControlChange(6, (value>>8) & 0x7f, channel);  //NRPN MSB
+  MIDI.sendControlChange(6, (value >> 8) & 0x7f, channel); //NRPN MSB
   MIDI.sendControlChange(38, value & 0x7f, channel); //NRPN MSB
 }
 
@@ -122,6 +123,34 @@ void sendDX7Message(uint8_t paramNBR, uint8_t rangeMax, uint8_t value) {
 
   //sync all the voices
   MIDI.sendControlChange(127, 0, 1);  //cc 127 on channel 1 (DX7 only sensitive on channel 1)
+}
+
+
+void sendRefaceDXMessage(uint8_t paramNBR, uint8_t rangeMax, uint8_t value) {
+  //the array to transmit
+  uint8_t data[9] = {0x43, 0x10, 0x7F, 0x1C, 0x05, 0x30, 0x00, 0x00, 0x00};
+
+  //if the parameter number takes more than seven bits, set the MSBit correctly
+  if (paramNBR > 35 && paramNBR < 140) {
+    paramNBR -= 36;
+    uint8_t _operator = paramNBR / 26;
+    data[5] = 0x31;
+    data[6] = _operator;
+    data[7] = paramNBR % 26;
+  }
+  else if (paramNBR <= 34) {
+    data[5] = 0x30;
+    data[6] = 0x00;
+    data[7] = paramNBR;
+  }
+
+  data[8] = value;//map(value, 0, 127, 0, 127);
+
+  //output the Sysex message
+  MIDI.sendSysEx(9, data, false);
+
+  //sync all the voices
+  // MIDI.sendControlChange(127, 0, 1);  //cc 127 on channel 1 (DX7 only sensitive on channel 1)
 }
 
 
@@ -201,6 +230,6 @@ uint64_t isInverted(uint8_t index) {
   return (activePreset.invertBits & ((uint64_t)1 << offset)) >> offset;
 }
 
-void clearBits64(uint64_t & value, uint8_t index) { 
+void clearBits64(uint64_t & value, uint8_t index) {
   value = value & ~(((uint64_t)1) << index);
 }
