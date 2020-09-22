@@ -19,6 +19,21 @@ void interpretKnob(uint8_t index, bool force, bool inhibit) {
           //check the channel of that specific knob
           uint8_t knobChannel = activePreset.knobInfo[index].SYSEX & 0x7f;
           if (knobChannel > 0 && knobChannel < 17) {
+            // check if we are doing a CC with range values
+            if (bitRead(activePreset.knobInfo[index].CC_VAL_INC, 7) != 1) {
+              uint8_t increment = activePreset.knobInfo[index].CC_VAL_INC;
+              if (increment == 0 ) {
+                // shouldn't be possible but just incase to avoid divbyzero
+                increment = 1;
+              }
+              // make use of integer division to round down
+              uint16_t modified_toSend = ( toSend / increment ) + activePreset.knobInfo[index].CC_VAL_OFFSET;
+              // int div should always get < 128 but to be sure
+              if (modified_toSend > 127 ) {
+                modified_toSend = 127;
+              }
+              toSend = modified_toSend;
+            }
             MIDI.sendControlChange(activePreset.knobInfo[index].CC & 0x7f, toSend, knobChannel);
           }
           else if (knobChannel == 0) { //if the channel number is 0, the CC will be sent on the global channel

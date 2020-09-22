@@ -13,6 +13,8 @@ struct Preset_t {
   // information on how knobs are setup
   struct Knob_t {
     uint8_t CC;
+    uint8_t CC_VAL_INC;
+    uint8_t CC_VAL_OFFSET;
     uint8_t NRPN;
     uint8_t SYSEX;
   } knobInfo[NUMBEROFKNOBS];
