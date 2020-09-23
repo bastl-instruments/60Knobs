@@ -18,3 +18,6 @@ Min 0 Max 2 - will let the first 1/4 turn of the knob send 0, 1/4 to 1/2 sends 1
 Editor checks in place to ensure that min can be from 0 to 126. Max from 1 to 127.
 Firmware will not send a value change if the min > max for example.
 
+Also added the "CC Range (specific Channel)" option to do the same thing but only
+on the given channel.
+
