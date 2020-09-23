@@ -1,6 +1,7 @@
 //Is executed everytime a Sysex message is received
 void sysExInterpreter(byte* data, unsigned messageLength) {
 
+  bool global = 0;
   //check if this is a valid Sysex message
   if (data[MANUFACTURER] == BASTL_MANUFACTURER_ID) {
     //check the command byte and acts accordingly
@@ -8,64 +9,65 @@ void sysExInterpreter(byte* data, unsigned messageLength) {
 
       case SETKNOBASGLOBALCC :  //Sets a knob as a global CC knob
         {
+            global = 1;
+        }
+        // nobreak as we want to run the next block too
+      case SETKNOBASINDEPCC :   //Sets a knob as an independent CC knob (almost identical code)
+        {
           //PARAM 1 : which knob do we affect ?
           //PARAM 2 : the CC number
+          //PARAM 3 : (if SETKNOBASINDECC) the MIDI channel of that knob
           if (data[PARAM1] < NUMBEROFKNOBS) {
             uint8_t knobIndex = data[PARAM1];
             activePreset.knobInfo[knobIndex].CC = data[PARAM2];
             activePreset.knobInfo[knobIndex].CC_VAL_INC = 128; // Sets bit 7 high
             activePreset.knobInfo[knobIndex].CC_VAL_OFFSET = 128; // Sets bit 7 high
             activePreset.knobInfo[knobIndex].NRPN = 0;
-            activePreset.knobInfo[knobIndex].SYSEX = 128;  // Sets bit 7 high
+            if (global) {
+              activePreset.knobInfo[knobIndex].SYSEX = 128;  // Sets bit 7 high
+            } else {
+              activePreset.knobInfo[knobIndex].SYSEX = data[PARAM3] | 0x80;
+            }
+            
 
             //knob in normal mode by default
             clearBits64(activePreset.invertBits, data[PARAM1]);
           }
-
           break;
         }
 
-      case SETKNOBASCCRANGE :   //Sets a knob as a global CC knob with limited output range
+      case SETKNOBASCCRANGE :   //Sets a knob as a global CC knob, but with a range
+        {
+          global = 1;
+        }
+        // nobreak as we want to run next block too       
+      case SETKNOBASINDEPCCRANGE :   //Sets a knob as an independent CC knob with limited output range
         {
           //PARAM 1 : which knob
           //PARAM 2 : the cc number
           //PARAM 3 : the min value
           //PARAM 4 : the max value
+          //PARAM 5 : (if SETKNOBASINDECCRANGE) the MIDI channel of that knob
           if (data[PARAM1] < NUMBEROFKNOBS) {
             uint8_t knobIndex = data[PARAM1];
             activePreset.knobInfo[knobIndex].CC = data[PARAM2];
             // Calculate value increment and offset when data comes in, rather than on
             // every knob turn, if the user had input an invalid range, ignore
             if ( data[PARAM3] < data[PARAM4] ) {
-              activePreset.knobInfo[knobIndex].CC_VAL_INC = 127 / ((data[PARAM4] - data[PARAM3]) + 1);
+              activePreset.knobInfo[knobIndex].CC_VAL_INC = float(128 / ((data[PARAM4] - data[PARAM3]) + 1));
               activePreset.knobInfo[knobIndex].CC_VAL_OFFSET = data[PARAM3];
               activePreset.knobInfo[knobIndex].NRPN = 0;
-              activePreset.knobInfo[knobIndex].SYSEX = 128;
+              
+              if (global) {
+                activePreset.knobInfo[knobIndex].SYSEX = 128;
+              } else {
+                activePreset.knobInfo[knobIndex].SYSEX = data[PARAM5] | 0x80;
+              }
 
               //knob in normal mode by default
               clearBits64(activePreset.invertBits, data[PARAM1]);
             }
           }
-          break;
-        }
-
-      case SETKNOBASINDEPCC :   //Sets a knob as an independent CC knob
-        {
-          //PARAM 1 : which knob do we affect ?
-          //PARAM 2 : CC number
-          //PARAM 3 : the MIDI channel of that knob
-          if (data[PARAM1] < NUMBEROFKNOBS) {
-            uint8_t knobIndex = data[PARAM1];
-            activePreset.knobInfo[knobIndex].CC = data[PARAM2];
-            activePreset.knobInfo[knobIndex].CC_VAL_INC = 128;
-            activePreset.knobInfo[knobIndex].CC_VAL_OFFSET = 128;
-            activePreset.knobInfo[knobIndex].NRPN = 0;
-            activePreset.knobInfo[knobIndex].SYSEX = data[PARAM3] | 0x80;
-
-            //knob in normal mode by default
-            clearBits64(activePreset.invertBits, data[PARAM1]);
-          }
-
           break;
         }
 

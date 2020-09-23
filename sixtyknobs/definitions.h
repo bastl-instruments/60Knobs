@@ -28,27 +28,30 @@ enum SysexByteNumber_t {
   PARAM1 = 3,
   PARAM2 = 4,
   PARAM3 = 5,
-  PARAM4 = 6
+  PARAM4 = 6,
+  PARAM5 = 7
 };
 
 //the numbers associated with every command in the interpreter
 enum Command_t {
   SETKNOBASGLOBALCC = 1,
-  SETKNOBASINDEPCC = 15,
   SETKNOBASBNRPN = 2,
   SETKNOBASUNRPN = 3,
   SETKNOBASDX = 4,
-  SETKNOBASCCRANGE = 11,
   PRESETSAVE = 5,
   PRESETLOAD = 6,
   DUMPPRESET = 7,
   SYNCKNOBS = 8,
   CHANNELCHANGE = 9,
-  DISABLEKNOB = 16,
   RANDOMIZER = 10,
+  SETKNOBASCCRANGE = 11,
+  SETKNOBASINDEPCCRANGE = 12,
+  SETKNOBASINDEPCC = 15,
+  DISABLEKNOB = 16,
   INVERTKNOB = 17,
-  DROPNRPNLSB = 19,
-  SETKNOBASENRPN = 18
+  SETKNOBASENRPN = 18,
+  DROPNRPNLSB = 19
+
 };
 
 /*---   Tunable interface behavior   ---*/

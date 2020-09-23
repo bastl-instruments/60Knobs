@@ -14,26 +14,19 @@ void interpretKnob(uint8_t index, bool force, bool inhibit) {
     //First we detect which kind of knob it is and we emit the data accordingly
     if (bitRead(activePreset.knobInfo[index].SYSEX, 7) == 1) {
       if (activePreset.knobInfo[index].NRPN == 0) {
+        
         /*---   It's a CC knob    ---*/
+        
         if (!inhibit) {
+          // check if we are doing a CC with range value
+          if (bitRead(activePreset.knobInfo[index].CC_VAL_OFFSET, 7) != 1) {
+            toSend = calculateValueInRange( activePreset.knobInfo[index].CC_VAL_INC,
+                                            activePreset.knobInfo[index].CC_VAL_OFFSET,
+                                            toSend );
+          }
           //check the channel of that specific knob
           uint8_t knobChannel = activePreset.knobInfo[index].SYSEX & 0x7f;
-          if (knobChannel > 0 && knobChannel < 17) {
-            // check if we are doing a CC with range values
-            if (bitRead(activePreset.knobInfo[index].CC_VAL_INC, 7) != 1) {
-              uint8_t increment = activePreset.knobInfo[index].CC_VAL_INC;
-              if (increment == 0 ) {
-                // shouldn't be possible but just incase to avoid divbyzero
-                increment = 1;
-              }
-              // make use of integer division to round down
-              uint16_t modified_toSend = ( toSend / increment ) + activePreset.knobInfo[index].CC_VAL_OFFSET;
-              // int div should always get < 128 but to be sure
-              if (modified_toSend > 127 ) {
-                modified_toSend = 127;
-              }
-              toSend = modified_toSend;
-            }
+          if (knobChannel > 0 && knobChannel < 17) {    
             MIDI.sendControlChange(activePreset.knobInfo[index].CC & 0x7f, toSend, knobChannel);
           }
           else if (knobChannel == 0) { //if the channel number is 0, the CC will be sent on the global channel
@@ -42,7 +35,9 @@ void interpretKnob(uint8_t index, bool force, bool inhibit) {
         }
       }
       else {
+        
         /*---   It's an NRPN knob    ---*/
+        
         //we calculate the range of the current knob
         uint8_t range = activePreset.knobInfo[index].SYSEX & 0x7f;
 
@@ -236,8 +231,22 @@ void renderFunctionButton() {
   }
 }
 
-
-
+//calculate the actual CC attribute value when using a range
+uint16_t calculateValueInRange( float increment, 
+                                uint8_t offset,
+                                uint16_t knobValue ) {
+                                  
+  // shouldn't be possible but just incase to avoid divbyzero
+  if (increment == 0 ) { increment = 1; }
+  
+  // calculate the value
+  uint16_t toSend = uint16_t(float( knobValue / increment ) + offset);
+  
+  // int div should always get < 128 but to be sure
+  if (toSend > 127 ) { toSend = 127; }
+  
+  return (toSend);
+}
 
 //return 0 if not inverted, not 0 otherwise
 uint64_t isInverted(uint8_t index) {
