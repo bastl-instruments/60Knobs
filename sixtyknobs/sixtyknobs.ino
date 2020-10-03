@@ -1,10 +1,11 @@
-/* EXTERNAL LIBRARIES */
+ /* EXTERNAL LIBRARIES */
 #include <MIDI.h>
 #include <EEPROM.h>
 
 /* OTHER CUSTOM FILES */
 #include "definitions.h"
 #include "variables.h"
+#include "functions.h"
 
 /*---   PIN DEFINITION   ---*/
 #define MIDI_TX_PIN 1
@@ -62,12 +63,7 @@ void setup() {
   
   //if this is the first time the device is powered on, we write the factory presets in the memory
   if(!isEEPROMvalid()) {
-    for (uint8_t i=0; i<5; i++) {
-      digitalWrite(LED_PIN, HIGH);
-      delay(300);
-      digitalWrite(LED_PIN, LOW);
-      delay(300);
-    }
+    do_some_flash(5);
     formatFactory();
   }
 
