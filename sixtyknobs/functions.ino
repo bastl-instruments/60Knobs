@@ -14,11 +14,19 @@ void interpretKnob(uint8_t index, bool force, bool inhibit) {
     //First we detect which kind of knob it is and we emit the data accordingly
     if (bitRead(activePreset.knobInfo[index].SYSEX, 7) == 1) {
       if (activePreset.knobInfo[index].NRPN == 0) {
+        
         /*---   It's a CC knob    ---*/
+        
         if (!inhibit) {
+          // check if we are doing a CC with range value
+          if (bitRead(activePreset.knobInfo[index].CC_VAL_OFFSET, 7) != 1) {
+            toSend = calculateValueInRange( activePreset.knobInfo[index].CC_VAL_INC,
+                                            activePreset.knobInfo[index].CC_VAL_OFFSET,
+                                            toSend );
+          }
           //check the channel of that specific knob
           uint8_t knobChannel = activePreset.knobInfo[index].SYSEX & 0x7f;
-          if (knobChannel > 0 && knobChannel < 17) {
+          if (knobChannel > 0 && knobChannel < 17) {    
             MIDI.sendControlChange(activePreset.knobInfo[index].CC & 0x7f, toSend, knobChannel);
           }
           else if (knobChannel == 0) { //if the channel number is 0, the CC will be sent on the global channel
@@ -27,7 +35,9 @@ void interpretKnob(uint8_t index, bool force, bool inhibit) {
         }
       }
       else {
+        
         /*---   It's an NRPN knob    ---*/
+        
         //we calculate the range of the current knob
         uint8_t range = activePreset.knobInfo[index].SYSEX & 0x7f;
 
@@ -196,9 +206,12 @@ void renderFunctionButton() {
         //if one the knobs associated to the MIDI channel selection has moved enough
         if (abs(knobBuffer[0][channelKnob] - knobBuffer[1][channelKnob]) > KnobSelectThreshold) {
           activePreset.channel = channelKnob + 1;
-          //give a visual feedback to prove that the channel has changed
+          //give a visual feedback to prove that the channel has changed          
+          //by flashing the number of times = channel
           digitalWrite(LED_PIN, LOW);
-          delay(100);
+          delay(PAUSE_FLASH);
+          do_some_flash(channelKnob+1);
+          delay(PAUSE_FLASH);
           digitalWrite(LED_PIN, HIGH);
         }
       }
@@ -209,10 +222,35 @@ void renderFunctionButton() {
         if (abs(knobBuffer[0][presetKnob] - knobBuffer[1][presetKnob]) > KnobSelectThreshold) {
           loadPreset(presetKnob - 50);
           //give a visual feedback to prove that the preset has changed
+          //for preset change, flash the preset number.
           digitalWrite(LED_PIN, LOW);
-          delay(250);
+          delay(PAUSE_FLASH);
+          do_some_flash(presetKnob-49);
+          delay(PAUSE_FLASH);
           digitalWrite(LED_PIN, HIGH);
         }
+      }
+
+      //do we need to flash the firmware version - knob60
+      if (abs(knobBuffer[0][59] - knobBuffer[1][59]) > KnobSelectThreshold) {
+          //give a visual feedback for the version number of the firmware
+          // 1.5 seconds off
+          // flash for each major version number
+          // 1.5 seconds off, flash each minor
+          // 1.5 seconds off, flash each fix version
+          // 3 seconds off
+          
+          uint8_t i;
+
+          //turn off the led for a while
+          digitalWrite(LED_PIN, LOW);
+          delay(PAUSE_FLASH);
+
+          do_some_flash( MAJOR_VERSION );
+          do_some_flash( MINOR_VERSION );
+          do_some_flash( FIX_VERSION );
+          delay(PAUSE_FLASH);
+          digitalWrite(LED_PIN, HIGH);
       }
 
       //we exit the "menu"so we can turn the MIDI thru back on
@@ -221,8 +259,35 @@ void renderFunctionButton() {
   }
 }
 
+// led flash helper
+void do_some_flash( uint8_t nof_flash ) {
 
+  uint8_t i;
+  for ( i=0; i<nof_flash; i++) {
+    digitalWrite(LED_PIN, HIGH);
+    delay(FAST_FLASH);
+    digitalWrite(LED_PIN, LOW);
+    delay(FAST_FLASH);
+  }
+  delay(PAUSE_FLASH);
+}
 
+//calculate the actual CC attribute value when using a range
+uint16_t calculateValueInRange( float increment, 
+                                uint8_t offset,
+                                uint16_t knobValue ) {
+                                  
+  // shouldn't be possible but just incase to avoid divbyzero
+  if (increment == 0 ) { increment = 1; }
+  
+  // calculate the value
+  uint16_t toSend = uint16_t(float( knobValue / increment ) + offset);
+  
+  // int div should always get < 128 but to be sure
+  if (toSend > 127 ) { toSend = 127; }
+  
+  return (toSend);
+}
 
 //return 0 if not inverted, not 0 otherwise
 uint64_t isInverted(uint8_t index) {

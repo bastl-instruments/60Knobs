@@ -7,6 +7,15 @@
 
 #include <stdint.h>
 
+//update these when releasing new version
+#define MAJOR_VERSION 1
+#define MINOR_VERSION 1
+#define FIX_VERSION 3
+
+#define FAST_FLASH 300
+#define SLOW_FLASH 750
+#define PAUSE_FLASH 1500
+
 //reset to factory preset timeout
 const uint16_t reset_timeout = 5000;
 
@@ -28,13 +37,13 @@ enum SysexByteNumber_t {
   PARAM1 = 3,
   PARAM2 = 4,
   PARAM3 = 5,
-  PARAM4 = 6
+  PARAM4 = 6,
+  PARAM5 = 7
 };
 
 //the numbers associated with every command in the interpreter
 enum Command_t {
   SETKNOBASGLOBALCC = 1,
-  SETKNOBASINDEPCC = 15,
   SETKNOBASBNRPN = 2,
   SETKNOBASUNRPN = 3,
   SETKNOBASDX = 4,
@@ -43,11 +52,15 @@ enum Command_t {
   DUMPPRESET = 7,
   SYNCKNOBS = 8,
   CHANNELCHANGE = 9,
-  DISABLEKNOB = 16,
   RANDOMIZER = 10,
+  SETKNOBASCCRANGE = 11,
+  SETKNOBASINDEPCCRANGE = 12,
+  SETKNOBASINDEPCC = 15,
+  DISABLEKNOB = 16,
   INVERTKNOB = 17,
-  DROPNRPNLSB = 19,
-  SETKNOBASENRPN = 18
+  SETKNOBASENRPN = 18,
+  DROPNRPNLSB = 19
+
 };
 
 /*---   Tunable interface behavior   ---*/
