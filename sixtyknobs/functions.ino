@@ -206,9 +206,12 @@ void renderFunctionButton() {
         //if one the knobs associated to the MIDI channel selection has moved enough
         if (abs(knobBuffer[0][channelKnob] - knobBuffer[1][channelKnob]) > KnobSelectThreshold) {
           activePreset.channel = channelKnob + 1;
-          //give a visual feedback to prove that the channel has changed
+          //give a visual feedback to prove that the channel has changed          
+          //by flashing the number of times = channel
           digitalWrite(LED_PIN, LOW);
-          delay(100);
+          delay(PAUSE_FLASH);
+          do_some_flash(channelKnob+1);
+          delay(PAUSE_FLASH);
           digitalWrite(LED_PIN, HIGH);
         }
       }
@@ -219,16 +222,54 @@ void renderFunctionButton() {
         if (abs(knobBuffer[0][presetKnob] - knobBuffer[1][presetKnob]) > KnobSelectThreshold) {
           loadPreset(presetKnob - 50);
           //give a visual feedback to prove that the preset has changed
+          //for preset change, flash the preset number.
           digitalWrite(LED_PIN, LOW);
-          delay(250);
+          delay(PAUSE_FLASH);
+          do_some_flash(presetKnob-49);
+          delay(PAUSE_FLASH);
           digitalWrite(LED_PIN, HIGH);
         }
+      }
+
+      //do we need to flash the firmware version - knob60
+      if (abs(knobBuffer[0][59] - knobBuffer[1][59]) > KnobSelectThreshold) {
+          //give a visual feedback for the version number of the firmware
+          // 1.5 seconds off
+          // flash for each major version number
+          // 1.5 seconds off, flash each minor
+          // 1.5 seconds off, flash each fix version
+          // 3 seconds off
+          
+          uint8_t i;
+
+          //turn off the led for a while
+          digitalWrite(LED_PIN, LOW);
+          delay(PAUSE_FLASH);
+
+          do_some_flash( MAJOR_VERSION );
+          do_some_flash( MINOR_VERSION );
+          do_some_flash( FIX_VERSION );
+          delay(PAUSE_FLASH);
+          digitalWrite(LED_PIN, HIGH);
       }
 
       //we exit the "menu"so we can turn the MIDI thru back on
       MIDI.turnThruOn();
     }
   }
+}
+
+// led flash helper
+void do_some_flash( uint8_t nof_flash ) {
+
+  uint8_t i;
+  for ( i=0; i<nof_flash; i++) {
+    digitalWrite(LED_PIN, HIGH);
+    delay(FAST_FLASH);
+    digitalWrite(LED_PIN, LOW);
+    delay(FAST_FLASH);
+  }
+  delay(PAUSE_FLASH);
 }
 
 //calculate the actual CC attribute value when using a range

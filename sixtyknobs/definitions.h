@@ -7,6 +7,15 @@
 
 #include <stdint.h>
 
+//update these when releasing new version
+#define MAJOR_VERSION 1
+#define MINOR_VERSION 1
+#define FIX_VERSION 3
+
+#define FAST_FLASH 300
+#define SLOW_FLASH 750
+#define PAUSE_FLASH 1500
+
 //reset to factory preset timeout
 const uint16_t reset_timeout = 5000;
 
